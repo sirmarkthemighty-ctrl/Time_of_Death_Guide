@@ -33,6 +33,10 @@ filled in from memory.
 
 No source PDFs or book text are included in this repository. Journal articles were found through PubMed.
 
+## Test
+
+`node test.js` runs 282 checks with no browser: every sign has a range or N/A and English and Thai source rows, the four teaching examples give the expected windows, and the calculator reproduces both worked examples in the book.
+
 ## Run it
 
 Open `time-of-death-guide.html` in a browser. Fonts load from Google Fonts when online; the app works offline.
