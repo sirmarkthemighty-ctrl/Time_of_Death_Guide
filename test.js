@@ -14,7 +14,7 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
 
 let pass = 0; const fails = [];
@@ -63,6 +63,20 @@ T.setIn({ tr: '16.5', ta: '16', bw: '74', cf: '1' }); r = T.nomoRes(); ok(r && r
 T.setIn({ tr: '30', ta: '16', bw: '74', cf: '1' }); const t1 = T.nomoRes().t; T.setIn({ tr: '26', ta: '16', bw: '74', cf: '1' }); ok(T.nomoRes().t > t1, 'a colder body must give a later time');
 T.setIn({ tr: '28', ta: '25', bw: '70', cf: '1' }); r = T.nomoRes(); ok(r && r.t > 0, 'ambient above 23 C uses the second equation');
 T.setIn({ tr: '', ta: '16', bw: '74', cf: '1' }); ok(T.nomoRes() === null, 'missing value gives no result');
+
+// ---- weight adjustment (Equation 6.10): the book's own statements and Table 6.20 spot checks
+near(T.nomoCw(2.0, 10), 3.2, 0.05, 'factor 2.0 for a 10 kg body (text: about 3.2)');
+near(T.nomoCw(2.0, 110), 1.7, 0.05, 'factor 2.0 for a 110 kg body (text: 1.7)');
+near(T.nomoCw(2.0, 70), 2.0, 0.05, 'factor 2.0 at 70 kg stays 2.0');
+near(T.nomoCw(1.6, 10), 2.0, 0.05, 'Table 6.20, 1.6 row, 10 kg');
+near(T.nomoCw(1.6, 4), 2.1, 0.05, 'Table 6.20, 1.6 row, 4 kg');
+near(T.nomoCw(2.0, 4), 3.5, 0.05, 'Table 6.20, 2.0 row, 4 kg');
+// Table 6.20: the five rows the PDF gives in full (base factor at 70 kg, then values at 4-150 kg)
+const W = [4, 6, 8, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150];
+const T620 = { 2.2: [4.5, 4.3, 4.1, 3.9, 3.4, 3.0, 2.8, 2.6, 2.4, 2.2, 2.1, 2.0, 1.9, 1.8, 1.7, 1.7, 1.6, 1.6], 2.4: [5.7, 5.3, 5.0, 4.8, 4.0, 3.5, 3.2, 2.9, 2.7, 2.4, 2.3, 2.2, 2.1, 1.9, 1.9, 1.8, 1.7, 1.6], 2.6: [7.1, 6.6, 6.2, 5.8, 4.7, 4.0, 3.6, 3.2, 2.9, 2.6, 2.5, 2.3, 2.2, 2.1, 2.0, 1.9, 1.8, 1.7], 2.8: [8.8, 8.1, 7.5, 7.0, 5.5, 4.6, 3.9, 3.5, 3.2, 2.8, 2.7, 2.5, 2.3, 2.2, 2.0, 1.9, 1.8, 1.7], 3.0: [10.9, 9.8, 8.9, 8.3, 6.2, 5.1, 4.3, 3.8, 3.4, 3.0, 2.8, 2.6, 2.4, 2.3, 2.1, 2.0, 1.9, 1.8] };
+for (const c of Object.keys(T620)) T620[c].forEach((v, i) => near(T.nomoCw(+c, W[i]), v, 0.09, 'Table 6.20 row ' + c + ' at ' + W[i] + ' kg'));
+T.setIn({ tr: '28.6', ta: '16', bw: '74', cf: '1.2' }); ok(T.nomoRes().adj === false, 'factors below 1.4 are not adjusted');
+T.setIn({ tr: '28.6', ta: '16', bw: '110', cf: '2' }); r = T.nomoRes(); ok(r.adj === true && Math.abs(r.ce - T.nomoCw(2, 110)) < 1e-9, 'a factor of 2.0 is adjusted for weight');
 
 // ---- Thai advisory text builds
 T.setLang('th'); T.setSetting('hot'); ok(typeof T.settingTxt(T.S.filter(s => s.id === 'rig3')) === 'string', 'Thai setting text');
