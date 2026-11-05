@@ -1,0 +1,23 @@
+Time of Death Guide
+Copyright (c) 2026 Warodom Phaenthong, M.D.
+
+The app's source code, layout, chart rendering and calculator are licensed under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+The full licence text is in the LICENSE file and at
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+No warranty. The app is a teaching estimate for healthcare professionals. It is not a forensic opinion and
+does not replace a forensic pathologist, local protocols or clinical judgement.
+
+Not covered by this licence:
+- The time ranges, short quotations and the rectal temperature method summarise:
+  Madea B, editor. Estimation of the Time Since Death. 4th ed. Boca Raton: CRC Press; 2023.
+  Pollak S, Saukko P, Knight B. Knight's Forensic Pathology. 5th ed. Boca Raton: CRC Press; 2026.
+  That content belongs to its authors and publisher. It is summarised, not reproduced, and each use is
+  cited by table and page in the app.
+- Journal references listed in the app (Henssge 1988, 1992; Henssge and Madea 2007; Cohen 2025; Strete 2025;
+  Lopez-Lazaro 2024; Jaffe 1989; Amendt 2007; Madea and Rodig 2006) belong to their authors and publishers.
+- No source PDFs or book texts are included in this repository.
+
+Fonts (IBM Plex Sans and IBM Plex Sans Thai) are loaded from Google Fonts at runtime and are licensed under
+the SIL Open Font License 1.1 by IBM.
