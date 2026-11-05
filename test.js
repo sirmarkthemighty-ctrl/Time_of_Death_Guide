@@ -14,7 +14,7 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
 
 let pass = 0; const fails = [];
@@ -77,6 +77,15 @@ const T620 = { 2.2: [4.5, 4.3, 4.1, 3.9, 3.4, 3.0, 2.8, 2.6, 2.4, 2.2, 2.1, 2.0,
 for (const c of Object.keys(T620)) T620[c].forEach((v, i) => near(T.nomoCw(+c, W[i]), v, 0.09, 'Table 6.20 row ' + c + ' at ' + W[i] + ' kg'));
 T.setIn({ tr: '28.6', ta: '16', bw: '74', cf: '1.2' }); ok(T.nomoRes().adj === false, 'factors below 1.4 are not adjusted');
 T.setIn({ tr: '28.6', ta: '16', bw: '110', cf: '2' }); r = T.nomoRes(); ok(r.adj === true && Math.abs(r.ce - T.nomoCw(2, 110)) < 1e-9, 'a factor of 2.0 is adjusted for weight');
+
+// ---- vitreous potassium: Madea 2023 equation (Table 7.22: K = 0.19 t + 5.88, so t = 5.26 K - 30.9) and Zilg model
+T.setVit({ k: '15', age: '', tmp: '', urea: '' }); let v = T.vitRes();
+near(v.t, 5.26 * 15 - 30.9, 1e-9, 'vitreous K 15 mmol/L'); near(v.hi - v.t, 19.06, 1e-9, 'vitreous K 95% limit'); ok(v.z === null, 'no Zilg value without age and temperature');
+near(5.26 * 5.88 - 30.9, 0, 0.05, 'the equation passes through the starting potassium of the data (5.88 mmol/L)');
+T.setVit({ k: '10', age: '50', tmp: '10', urea: '80' }); v = T.vitRes(); near(v.z, Math.log(30.04 / 24.44) / (0.135 - 0.056 + 0.0985) * 24, 1e-9, 'Zilg model'); ok(v.renal && v.warm, 'urea above 70 and ambient 10 C or more must be flagged');
+T.setVit({ k: '5', age: '', tmp: '', urea: '' }); ok(T.vitRes().msg, 'potassium at the starting level gives no estimate');
+T.setVit({ k: '', age: '', tmp: '', urea: '' }); ok(T.vitRes() === null, 'empty potassium gives no result');
+ok(T.IMM.length === 5 && T.IMM.every(r => r[2].length === 12) && T.IMM_M.length === 12, "Reh's table rows must have 12 months");
 
 // ---- Thai advisory text builds
 T.setLang('th'); T.setSetting('hot'); ok(typeof T.settingTxt(T.S.filter(s => s.id === 'rig3')) === 'string', 'Thai setting text');
