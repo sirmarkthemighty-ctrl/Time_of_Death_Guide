@@ -14,7 +14,7 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
 
 let pass = 0; const fails = [];
@@ -86,6 +86,21 @@ T.setVit({ k: '10', age: '50', tmp: '10', urea: '80' }); v = T.vitRes(); near(v.
 T.setVit({ k: '5', age: '', tmp: '', urea: '' }); ok(T.vitRes().msg, 'potassium at the starting level gives no estimate');
 T.setVit({ k: '', age: '', tmp: '', urea: '' }); ok(T.vitRes() === null, 'empty potassium gives no result');
 ok(T.IMM.length === 5 && T.IMM.every(r => r[2].length === 12) && T.IMM_M.length === 12, "Reh's table rows must have 12 months");
+
+// ---- text box: free text to signs
+const ids_ = txt => T.parseText(txt).hits.map(h => h.id).sort().join(',');
+ok(ids_('Body warm and flaccid, livor visible and blanches, no rigor') === 'cool1,flac,liv1', 'text: warm, flaccid, livor blanching: ' + ids_('Body warm and flaccid, livor visible and blanches, no rigor'));
+ok(ids_('Cold to touch, rigor full in all large joints, livor fixed') === 'cool3,liv3,rig3', 'text: cold, rigor full, livor fixed: ' + ids_('Cold to touch, rigor full in all large joints, livor fixed'));
+ok(ids_('ตัวเย็น ศพแข็งเต็มที่ รอยจ้ำเลือดคงที่') === 'cool3,liv3,rig3', 'text (Thai): ' + ids_('ตัวเย็น ศพแข็งเต็มที่ รอยจ้ำเลือดคงที่'));
+ok(ids_('Green discolouration of the abdomen with marbling and large maggots') === 'dec1,dec2,ins2', 'text: decomposition: ' + ids_('Green discolouration of the abdomen with marbling and large maggots'));
+ok(ids_('livor not fixed, rigor passing') === 'liv1,rig4', 'text: not fixed, passing: ' + ids_('livor not fixed, rigor passing'));
+ok(ids_('Rigor only in the jaw') === 'rig1', 'text: jaw only');
+ok(ids_('') === '' && ids_('nothing useful here') === '', 'text: empty and unrelated give no signs');
+let pr = T.parseText('rigor full and rigor in the jaw'); ok(pr.hits.length === 1 && pr.also.length === 1, 'text: only one stage per choose-one group');
+pr = T.parseText('Rectal temperature 28.6, ambient 16, weight 74 kg, vitreous potassium 15 mmol/L'); ok(pr.vals.tr === '28.6' && pr.vals.ta === '16' && pr.vals.bw === '74' && pr.vals.k === '15', 'text: numbers: ' + JSON.stringify(pr.vals));
+pr = T.parseText('cornea hazy'); ok(pr.notes.length === 1 && pr.hits.length === 0, 'text: cornea hazy without open or closed needs a question');
+pr = T.parseText('cold environment, warm room'); ok(pr.hits.length === 0, 'text: room temperature words must not set the body temperature');
+ok(T.RULES.every(r => T.S.some(s => s.id === r[0])), 'every text rule points at a real sign');
 
 // ---- Thai advisory text builds
 T.setLang('th'); T.setSetting('hot'); ok(typeof T.settingTxt(T.S.filter(s => s.id === 'rig3')) === 'string', 'Thai setting text');
