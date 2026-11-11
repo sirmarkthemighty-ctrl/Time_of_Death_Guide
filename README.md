@@ -27,7 +27,7 @@ range, and no single sign dates death reliably.
 ## Sources and what is not verified
 
 Time ranges come from two textbooks: Madea (ed.), *Estimation of the Time Since Death*, 4th ed., CRC Press 2023,
-and Pollak, Saukko and Knight, *Knight's Forensic Pathology*, 5th ed., CRC Press 2026. Each sign's (i) button
+Pollak, Saukko and Knight, *Knight's Forensic Pathology*, 5th ed., CRC Press 2026, with DiMaio and Molina, *DiMaio's Forensic Pathology*, 3rd ed., CRC Press 2022, as a third cross-check. Each sign's (i) button
 shows which book gives its figure, with table and page numbers on separate rows. Page numbers for the Knight
 book were read from the PDF running heads and may be off by one. Signs a book does not cover say so; none is
 filled in from memory.
@@ -36,7 +36,7 @@ No source PDFs or book text are included in this repository. Journal articles we
 
 ## Test
 
-`node test.js` runs its checks with no browser (401 at present): every sign has a range or N/A and English and Thai source rows, the four teaching examples give the expected windows, and the calculator reproduces both worked examples in the book, its weight adjustment matches the book's Table 6.20, and the vitreous potassium calculator follows the book's equation.
+`node test.js` runs its checks with no browser (441 at present): every sign has a range or N/A and English and Thai source rows, the four teaching examples give the expected windows, and the calculator reproduces both worked examples in the book, its weight adjustment matches the book's Table 6.20, and the vitreous potassium calculator follows the book's equation.
 
 ## Run it
 

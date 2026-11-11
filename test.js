@@ -14,7 +14,7 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
 
 let pass = 0; const fails = [];
@@ -35,6 +35,7 @@ for (const s of T.S) {
   ok(rows.length >= 1 && rows.every(r => typeof r[0] === 'string' && typeof r[1] === 'string' && /[฀-๿]/.test(r[1])), 'bad source rows (need English and Thai): ' + s.id);
 }
 for (const k of Object.keys(T.CK)) ok(ids.has(k), 'source check for a sign that does not exist: ' + k);
+for (const k of Object.keys(T.DX)) { ok(ids.has(k), 'DiMaio row for a sign that does not exist: ' + k); ok(/[\u0E00-\u0E7F]/.test(T.DX[k][1]), 'DiMaio row needs Thai: ' + k); }
 for (const k of Object.keys(T.KX)) ok(ids.has(k), 'Knight row for a sign that does not exist: ' + k);
 ok(T.S.length === 36, 'expected 36 signs, got ' + T.S.length);
 
