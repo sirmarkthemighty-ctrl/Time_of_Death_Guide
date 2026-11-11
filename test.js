@@ -14,7 +14,7 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,DR,setRef:m=>{refMode=m;applyRef()},IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,DR,MR,KR,DER,SRC,srow,setSrc:o=>{tblSrc=o;applyRef()},setRef:m=>{tblSrc=m==='d'?{D:1,M:0,K:0}:{D:0,M:1,K:1};applyRef()},IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
 T.setRef('m'); // the checks below are for Madea + Knight; DiMaio mode has its own checks near the end
 
@@ -113,6 +113,33 @@ ok(['rig5', 'cool1', 'cool3', 'sup1', 'ir1', 'tn1', 'dec2', 'ins2', 'rem1', 'rem
 ok(T.S.every(s => T.srcRows(s)[0][0].includes('DiMaio 2022')), 'in DiMaio mode the DiMaio row comes first');
 let dw = win_(['rig3', 'liv3']); ok(T.headline(dw) === '8 h - 12 h', 'DiMaio window rigor full + livor fixed: ' + T.headline(dw));
 T.setRef('m'); ok(R_('rig3') === '2-85' && R_('cool1') === '0-8', 'switching back restores the Madea and Knight ranges: ' + R_('rig3') + ' ' + R_('cool1'));
+
+// ---- sources: each sign uses the widest range across the books that are on, and the lanes follow the toggles
+{
+  const R2 = id => { const s = T.S.find(x => x.id === id); return s.na ? 'na' : s.lo + '-' + s.hi + (s.bl ? 'b' : ''); };
+  T.setSrc({ D: 0, M: 1, K: 1 });
+  ok(R2('dec1') === '24-72' && R2('dec3') === '192-336' && R2('eye2') === 'na' && R2('rig3') === '2-85' && R2('rem3') === '8760-17520b' && R2('cool3') === '8-null', 'Madea + Knight: ' + ['dec1', 'dec3', 'eye2', 'rig3', 'rem3', 'cool3'].map(R2).join(' '));
+  T.setSrc({ D: 1, M: 1, K: 0 });
+  ok(R2('rig3') === '2-85' && R2('dec3') === '60-336' && R2('sup1') === '0-2.5' && R2('eye2') === '24-24b' && R2('cool1') === 'na', 'DiMaio + Madea: ' + ['rig3', 'dec3', 'sup1', 'eye2', 'cool1'].map(R2).join(' '));
+  T.setSrc({ D: 0, M: 0, K: 1 });
+  ok(R2('cool1') === '0-8' && R2('sup1') === 'na' && R2('ins1') === '8-null' && R2('rig3') === '6-36b', 'Knight alone: ' + ['cool1', 'sup1', 'ins1', 'rig3'].map(R2).join(' '));
+  T.setSrc({ D: 1, M: 1, K: 1 });
+  ok(R2('liv3') === '4-null' && T.S.filter(s => s.na).map(s => s.id).sort().join() === 'cool2,tn1', 'all three: liv3 ' + R2('liv3') + '; N/A signs ' + T.S.filter(s => s.na).map(s => s.id).join());
+  const one0 = x => (x.match(/class="ln"/g) || []).length;
+  T.setSrc({ D: 0, M: 1, K: 0 }); const one = T.srow(T.S.find(s => s.id === 'rig3'));
+  ok(one0(one) === 1 && !one.includes('class="band"'), 'one source gives one lane and no overlap band');
+  T.setSrc({ D: 1, M: 1, K: 1 }); const three = T.srow(T.S.find(s => s.id === 'rig3'));
+  ok(one0(three) === 3 && three.includes('class="band"') && !T.srow(T.S.find(s => s.id === 'rig3'), 1).includes('class="band"'), 'three sources give three lanes and an overlap band (not in the summary)');
+  T.setSrc({ D: 0, M: 1, K: 1 });
+}
+
+// ---- every figure marked derived must exist in that book's lane, and show the mark
+{
+  const tab = { D: T.DR, M: T.MR, K: T.KR };
+  Object.keys(T.DER).forEach(b => T.DER[b].forEach(id => ok(tab[b][id] && tab[b][id][2] !== 'n', 'derived mark on a missing figure: ' + b + ' ' + id)));
+  T.setSrc({ D: 1, M: 1, K: 1 }); ok(T.srow(T.S.find(s => s.id === 'rig2')).includes('*</span>'), 'derived lane shows the asterisk');
+  T.setSrc({ D: 0, M: 1, K: 1 });
+}
 
 // ---- Thai advisory text builds
 T.setLang('th'); T.setSetting('hot'); ok(typeof T.settingTxt(T.S.filter(s => s.id === 'rig3')) === 'string', 'Thai setting text');
