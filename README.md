@@ -11,6 +11,7 @@ range, and no single sign dates death reliably.
 ## What it does
 
 - **Describe the findings box:** type what you see (English or Thai) and it ticks the matching signs and fills the calculators, using plain keyword rules on the page.
+- **Ranges from:** a choice between DiMaio 2022 (the default: a figure for 16 of 36 signs, typical values, the rest N/A) and Madea 2023 + Knight 2026 (ranges with limits).
 - **Checklist of 36 early and late signs** (rigor, livor, cooling, muscle and eye reactions, decomposition,
   insects, long-term remains). Tick what you find.
 - **Window and chart.** The ticked signs are overlapped on one log time scale. A floating bar follows you down
@@ -36,7 +37,7 @@ No source PDFs or book text are included in this repository. Journal articles we
 
 ## Test
 
-`node test.js` runs its checks with no browser (441 at present): every sign has a range or N/A and English and Thai source rows, the four teaching examples give the expected windows, and the calculator reproduces both worked examples in the book, its weight adjustment matches the book's Table 6.20, and the vitreous potassium calculator follows the book's equation.
+`node test.js` runs its checks with no browser (455 at present): every sign has a range or N/A and English and Thai source rows, the four teaching examples give the expected windows, and the calculator reproduces both worked examples in the book, its weight adjustment matches the book's Table 6.20, and the vitreous potassium calculator follows the book's equation.
 
 ## Run it
 

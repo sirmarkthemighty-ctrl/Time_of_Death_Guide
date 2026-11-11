@@ -14,8 +14,9 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,DR,setRef:m=>{refMode=m;applyRef()},IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
+T.setRef('m'); // the checks below are for Madea + Knight; DiMaio mode has its own checks near the end
 
 let pass = 0; const fails = [];
 const ok = (cond, msg) => { cond ? pass++ : fails.push(msg); };
@@ -102,6 +103,16 @@ pr = T.parseText('Rectal temperature 28.6, ambient 16, weight 74 kg, vitreous po
 pr = T.parseText('cornea hazy'); ok(pr.notes.length === 1 && pr.hits.length === 0, 'text: cornea hazy without open or closed needs a question');
 pr = T.parseText('cold environment, warm room'); ok(pr.hits.length === 0, 'text: room temperature words must not set the body temperature');
 ok(T.RULES.every(r => T.S.some(s => s.id === r[0])), 'every text rule points at a real sign');
+
+// ---- DiMaio mode (the default in the app): his figures only, N/A elsewhere
+T.setRef('d');
+const dn = T.S.filter(s => !s.na).length; ok(dn === 16, 'DiMaio mode should give 16 signs a figure, got ' + dn);
+const R_ = id => { const s = T.S.find(x => x.id === id); return s.na ? 'na' : s.lo + '-' + s.hi + (s.bl ? 'b' : ''); };
+ok(R_('rig1') === '2-4' && R_('rig3') === '6-12' && R_('liv0') === '0-2' && R_('liv3') === '8-null' && R_('dec1') === '24-36' && R_('dec3') === '60-72' && R_('eye2') === '24-24b' && R_('ins3') === '144-240b', 'DiMaio figures: ' + ['rig1', 'rig3', 'liv0', 'liv3', 'dec1', 'dec3', 'eye2', 'ins3'].map(R_).join(' '));
+ok(['rig5', 'cool1', 'cool3', 'sup1', 'ir1', 'tn1', 'dec2', 'ins2', 'rem1', 'rem2'].every(id => R_(id) === 'na'), 'signs DiMaio gives no figure for must be N/A');
+ok(T.S.every(s => T.srcRows(s)[0][0].includes('DiMaio 2022')), 'in DiMaio mode the DiMaio row comes first');
+let dw = win_(['rig3', 'liv3']); ok(T.headline(dw) === '8 h - 12 h', 'DiMaio window rigor full + livor fixed: ' + T.headline(dw));
+T.setRef('m'); ok(R_('rig3') === '2-85' && R_('cool1') === '0-8', 'switching back restores the Madea and Knight ranges: ' + R_('rig3') + ' ' + R_('cool1'));
 
 // ---- Thai advisory text builds
 T.setLang('th'); T.setSetting('hot'); ok(typeof T.settingTxt(T.S.filter(s => s.id === 'rig3')) === 'string', 'Thai setting text');
