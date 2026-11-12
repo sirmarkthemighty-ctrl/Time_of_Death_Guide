@@ -14,7 +14,7 @@ const els = {};
 const document = { getElementById: id => els[id] || (els[id] = el()), documentElement: Object.assign(el(), { getAttribute() { return null; } }), addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
 const win = { matchMedia: () => ({ matches: false }), print() {} }; win.self = win.top = win;
 const ctx = vm.createContext({ document, window: win, navigator: { language: 'en' }, localStorage: { getItem() { return null; }, setItem() {} }, scrollTo() {}, scrollY: 0, console });
-vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,DR,MR,KR,DER,SRC,srow,setSrc:o=>{tblSrc=o;applyRef()},setRef:m=>{tblSrc=m==='d'?{D:1,M:0,K:0}:{D:0,M:1,K:1};applyRef()},IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
+vm.runInContext(code + `\n;globalThis.__T={S,CK,KX,CATS,CI,GROUPS,CASES,CHANGELOG,TICKS,sel,srcRows,estimate,headline,range,fmt,nomoRes,nomoCw,vitRes,parseText,RULES,DX,DR,MR,KR,DER,disagree,SRC,srow,setSrc:o=>{tblSrc=o;applyRef()},setRef:m=>{tblSrc=m==='d'?{D:1,M:0,K:0}:{D:0,M:1,K:1};applyRef()},IMM,IMM_M,settingTxt,softTxt,chosen,setIn:o=>{nomoIn=Object.assign({},nomoIn,o)},setVit:o=>{vitIn=Object.assign({},vitIn,o)},setLang:l=>{lang=l},setSetting:v=>{setting=v}};`, ctx);
 const T = ctx.__T;
 T.setRef('m'); // the checks below are for Madea + Knight; DiMaio mode has its own checks near the end
 
@@ -122,7 +122,7 @@ T.setRef('m'); ok(R_('rig3') === '2-85' && R_('cool1') === '0-8', 'switching bac
   T.setSrc({ D: 1, M: 1, K: 0 });
   ok(R2('rig3') === '2-85' && R2('dec3') === '60-336' && R2('sup1') === '0-2.5' && R2('eye2') === '24-24b' && R2('cool1') === 'na', 'DiMaio + Madea: ' + ['rig3', 'dec3', 'sup1', 'eye2', 'cool1'].map(R2).join(' '));
   T.setSrc({ D: 0, M: 0, K: 1 });
-  ok(R2('cool1') === '0-8' && R2('sup1') === 'na' && R2('ins1') === '8-null' && R2('rig3') === '6-36b', 'Knight alone: ' + ['cool1', 'sup1', 'ins1', 'rig3'].map(R2).join(' '));
+  ok(R2('cool1') === '0-8' && R2('sup1') === 'na' && R2('ins1') === '8-null' && R2('rig3') === '6-48b', 'Knight alone: ' + ['cool1', 'sup1', 'ins1', 'rig3'].map(R2).join(' '));
   T.setSrc({ D: 1, M: 1, K: 1 });
   ok(R2('liv3') === '4-null' && T.S.filter(s => s.na).map(s => s.id).sort().join() === 'cool2,tn1', 'all three: liv3 ' + R2('liv3') + '; N/A signs ' + T.S.filter(s => s.na).map(s => s.id).join());
   const one0 = x => (x.match(/class="ln"/g) || []).length;
@@ -138,6 +138,15 @@ T.setRef('m'); ok(R_('rig3') === '2-85' && R_('cool1') === '0-8', 'switching bac
   const tab = { D: T.DR, M: T.MR, K: T.KR };
   Object.keys(T.DER).forEach(b => T.DER[b].forEach(id => ok(tab[b][id] && tab[b][id][2] !== 'n', 'derived mark on a missing figure: ' + b + ' ' + id)));
   T.setSrc({ D: 1, M: 1, K: 1 }); ok(T.srow(T.S.find(s => s.id === 'rig2')).includes('*</span>'), 'derived lane shows the asterisk');
+  T.setSrc({ D: 0, M: 1, K: 1 });
+}
+
+// ---- the disagreement marker on the checklist chips
+{
+  const D2 = id => T.disagree(T.S.find(s => s.id === id));
+  T.setSrc({ D: 1, M: 1, K: 1 });
+  ok(D2('dec1') === 2 && D2('rig3') === 0 && D2('liv3') === 0 && D2('sup1') === 0, 'disagree, all three: dec1 ' + D2('dec1') + ' rig3 ' + D2('rig3') + ' liv3 ' + D2('liv3') + ' sup1 ' + D2('sup1'));
+  T.setSrc({ D: 0, M: 1, K: 0 }); ok(T.S.every(s => T.disagree(s) === 0), 'one source can never disagree with itself');
   T.setSrc({ D: 0, M: 1, K: 1 });
 }
 
